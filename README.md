@@ -1,4 +1,4 @@
-# SUTD Machine Learning pProject
+# SUTD Machine Learning Project
 **A POS&NPC tagger for tweets with Hidden Markov Model**
 
 Name: Yuan Bowei
