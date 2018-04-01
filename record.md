@@ -7,7 +7,7 @@ This package consists of four python modules:
 1. **emission.py:** This module computes emission probability with given training text.
 2. **transition.py:** This module computes transition probability with given training text.
 3. **viterbi.py:** This module implements viterbi algorithm to predict the tag of given test text
-4. **toolbox.py:**This module is a box of tools, providing functionalities and optimization for three modules above, including preprocessor, evaluation of a prediction
+4. **toolbox.py:** This module is a box of tools, providing functionalities and optimization for three modules above, including preprocessor, evaluation of a prediction
 
 ##Result:
 POS:
