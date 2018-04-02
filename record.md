@@ -1,355 +1,259 @@
-# SUTD Machine Learning Project
-**A POS&NPC tagger for tweets with Hidden Markov Model**
+# SUTD Machine Learning Project 2015
+Machine Learning Project at SUTD, 2015
 
-Name: Yuan Bowei
-
-Student ID: 1001916
-## Directory Structure
-### Folders
-**src** Source code, all following intructions are for this directory
-
-**order2** A combination of MLE predictor, first order HMM and second order HMM ,plus some smoothing. The best performance parameter combination can give a 78% correction rate. 
-
-**data** Training data, test data and output data
-
-### Scripts
+##instruction
 This package consists of four python modules:
 
 1. **emission.py:** This module computes emission probability with given training text.
 2. **transition.py:** This module computes transition probability with given training text.
-3. **viterbi.py:** This module implements viterbi algorithm to predict the tag of given test text.
-4. **toolbox.py:** This module is a box of tools, providing functionalities and optimization for three modules above, including preprocessor, evaluation of a prediction.
+3. **viterbi.py:** This module implements viterbi algorithm to predict the tag of given test text
+4. **toolbox.py:** This module is a box of tools, providing functionalities and optimization for three modules above, including preprocessor, evaluation of a prediction
 
-## How to run the code
-You can always add `-h` argument to seek help.
+##Result:
+POS:
 
-	python run.py -h
-	parameter list:
-	-t Path of training file, required
-	-i Path of testing file, required
-	-o Path of output file, required
-	--algorithm, range[0,1,2], the algorithm to use
-		0: MLE predictor in emission.py
-		1: use viterbi top 1 tagger
-		2: use viterbi top N tagger, N can be 1 or 10
-	-b, specifying number of sequences to find
-		default value is 1
-		for algorithm 0 and 1: it canonly be 1
-		for algorithm 2: it can be 1 or 10
-	-p, preprocess
-		default value is True
-		if it is True, word would be processed before
-		computing probabilities
+without preprocessor
+POS,MLE: 0.399085794655
+POS,DP: 0.409282700422
+runtime: 183.357277
+1 :POS, DP2: 0.385372714487
+2 :POS, DP2: 0.386779184248
+3 :POS, DP2: 0.388537271449
+4 :POS, DP2: 0.389240506329
+5 :POS, DP2: 0.393108298172
+6 :POS, DP2: 0.39099859353
+7 :POS, DP2: 0.398030942335
+8 :POS, DP2: 0.392405063291
+9 :POS, DP2: 0.396624472574
+10 :POS, DP2: 0.395218002813
+with preprocessor
+POS, MLE: 0.373769338959
+POS, DP: 0.354430379747
+runtime: 308.317963
+1 :POS, DP2: 0.339310829817
+2 :POS, DP2: 0.341420534459
+3 :POS, DP2: 0.347046413502
+4 :POS, DP2: 0.346694796062
+5 :POS, DP2: 0.348452883263
+6 :POS, DP2: 0.350914205345
+7 :POS, DP2: 0.351617440225
+8 :POS, DP2: 0.348452883263
+9 :POS, DP2: 0.349156118143
+10 :POS, DP2: 0.353023909986
+
+NPC:
+
+without preprocessor
+NPC,MLE: 0.299996977665
+NPC,DP: 0.223622570798
+runtime: 17.605402
+1 :NPC, DP2: 0.223622570798
+2 :NPC, DP2: 0.24311663191
+3 :NPC, DP2: 0.244325565932
+4 :NPC, DP2: 0.256173119352
+5 :NPC, DP2: 0.258016743736
+6 :NPC, DP2: 0.264726327561
+7 :NPC, DP2: 0.263910297096
+8 :NPC, DP2: 0.271224347931
+9 :NPC, DP2: 0.267325535709
+10 :NPC, DP2: 0.271428571429
+with preprocessor
+NPC, MLE: 0.296672409103
+NPC, DP: 0.215673829601
+runtime: 23.08525
+1 :NPC, DP2: 0.215673829601
+2 :NPC, DP2: 0.236739504942
+3 :NPC, DP2: 0.240849880618
+4 :NPC, DP2: 0.255780215795
+5 :NPC, DP2: 0.25714026657
+6 :NPC, DP2: 0.265361017922
+7 :NPC, DP2: 0.268111342823
+8 :NPC, DP2: 0.275425393659
+9 :NPC, DP2: 0.267144195606
+10 :NPC, DP2: 0.257142857143
+
+##toolbox.py
+This module provides the tools that facilitates other modules, including preprocessor and evaluation methods:
+####Preprocessor
+	toolbox.preprocess("input file", "output file")
+This method preprocesses the input file and write the results into output file. It achieves this by using following two methods:
+
+	#sentence processing
+	pword, ptag = toolbox.processSentence(sentence)
+This method processes one sentence into one processed word and one processed tag. Temporarily, no modifications are done to tag except extracting it from the sentence.
 	
-For example, the following command runs viterbi algorithm to get best 10 sequence without preprocessing:
+	#word processing
+	pword = toolbox.processWord(word)
+This method processes a word with the following rule:
 
-	python run.py -t ../data/POS/ptrain 
-					-i ../data/POS/dev.in 
-					-o ../data/POS/dev.p3.out 
-					--algorithm 2 
-					-b 10
-					-p False
-                    
-## Technical Overview
-### 1. `emission.py`
-This module contains `class emission` which maintains the emission probabilty of text in a file.
+  *  when one word contains only punctuations, for example ":)", ":(", remains the same
+  *  for other words with not only punctuations like "hello!", remove the punctuations in them and modify into lower case. This generalization procedure could slightly improve the results.
+  *  [deprecated]exception is URL, initially URL are retained, but in terms of the error rate there were not improvements, so deprecated:
+
+		hasURL(word) #judge whether one sentence has URL
+		
+####Evaluation
+This tool is to evaluate the prediction with the answer, and return the error rate:
+
+	evaluate("test file","answer file",col=1, pr=False)
+The *test file* contains our prediction, *answer file* contains the correct anser, *col* specifies which column of prediction is to be tested (in case there are multiple predictions like in Top-10 predictions), when *pr* is set True, the function would print in which line the prediction differs from the answer.
+
+##emission.py
+This module contains the class which maintains the emission probabilty of text given in a file.
 #### Algorithm Specification
-This class computes emission probability of the given text with Maximal Likelihood Estimator (MLE) introduced in Hidden Markov Model.
+This class computes emission probability of the given text with the Maximal Likelihood Estimator introduced in Hidden Markov Model.
 
 The general case formula is:
-
-<a href="https://www.codecogs.com/eqnedit.php?latex=e(word|tag)&space;=&space;\frac{count(word,tag)}{count(tag)&plus;1}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?e(word|tag)&space;=&space;\frac{count(word,tag)}{count(tag)&plus;1}" title="e(word|tag) = \frac{count(word,tag)}{count(tag)+1}" /></a>
-
-We can hardly learn **all possible** words in the given text file. For a word that never appears in the corpus, we provide a special case formula to estimate its emission probability:
-
-<a href="https://www.codecogs.com/eqnedit.php?latex=e(new|tag)&space;=&space;\frac{1}{count(tag)&plus;1}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?e(new|tag)&space;=&space;\frac{1}{count(tag)&plus;1}" title="e(new|tag) = \frac{1}{count(tag)+1}" /></a>
-
-#### Implementation
-Internally, `class emission` maintains two Python `dictionaries`, named `matrix` and `labels`.
-~~~~python
-matrix[word][tags] = count(word, tag)
-labels[tag] = count(tag)
-~~~~    
-#### (1) Import and Initialize the Module
-
-~~~~python
-# import the module
-import emission
-# initialization
-e = emission.emission()
-~~~~    
-This step provides an empty `emission` object whose two internal dictionaries are empty.
-
-#### (2) Compute the Parameters with Given Corpus
-~~~~python	
-e.compute("training file name")
-~~~~
-After this step the `matrix` and `labels` in `emission` object are computed with the training data.
-
-#### (3) Compute Emission Probability
-~~~~python
-e.emit(word, tag, p=True)
-# attention: tag must appear in the given training corpus
-# or it would raise a runtime error
-~~~~
-***word*** is the word to be emitted from ***tag***. Parameter *p* stands for "process". When *p* is `True`, the object would process *word* (with the tools in toolbox) before computing the emission probability.
-
-This function returns a floating number specifying the emission probability of the given ***word*** and ***tag***.
-
-#### (4) Guess the Most Probable Tag
-
-~~~~PYTHON
-e.mostprob()
-~~~~
-It happens in Hidden Markov Model that at some points in a sentence, all possible tags score 0. One enhancement is to tag this position as the most probable label among all possible labels, which improves the result.
-
-#### (5) MLE Predictor
-
-With the emission probability, one way to predict labels of a given corpus is to use Maximal Likelihood, that is, to find out the most probable tag for the word under emission probability.
-~~~~python
-e.predict("input filename","output filename", p=True)
-~~~~
-Then the object labels the input file with emission probability MLE and writes the labeled corpus into output file. 
-
-When *p* is set True, the word would be processed with toolbox before computing emission probability.
-
-### 2. `transition.py`
-This module contains `class Transition` which maintains four internal dictionaries ***start***, ***stop***, ***matrix*** and ***states*** to compute the transition probability with the MLE in Hidden Markov Model, where:
-<a href="https://www.codecogs.com/eqnedit.php?latex=T(y_{i-1}->y_i)&space;=&space;\frac{count(y_{i-1},y{i})}{count(y_{i-1})}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?T(y_{i-1}->y_i)&space;=&space;\frac{count(y_{i-1},y{i})}{count(y_{i-1})}" title="T(y_{i-1}->y_i) = \frac{count(y_{i-1},y{i})}{count(y_{i-1})}" /></a>
-In particular, i=1 or i=n respectively denotes that this word is the first or the last word of the sentence. In this case, the transition probability is:
-<a href="https://www.codecogs.com/eqnedit.php?latex=T(y_0->y_1)=&space;\frac{count(START,y_1)}{count(START)}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?T(y_0->y_1)=&space;\frac{count(START,y_1)}{count(START)}" title="T(y_0->y_1)= \frac{count(START,y_1)}{count(START)}" /></a>
-<a href="https://www.codecogs.com/eqnedit.php?latex=T(y_n->y_{n&plus;1})&space;=&space;\frac{count(y_n,STOP)}{count(STOP)}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?T(y_n->y_{n&plus;1})&space;=&space;\frac{count(y_n,STOP)}{count(STOP)}" title="T(y_n->y_{n+1}) = \frac{count(y_n,STOP)}{count(STOP)}" /></a>.
-
-~~~~python
-matrix[front][current] = count(front, current)
-states[tag] = count(tag)
-start[tag] = count(START,tag)
-stop[tag] = count(tag,STOP)
-~~~~
-
-#### (1) Import and Initialization
-	
-	import transition
-	t = transition.transition()
-This procedure gives an empty `transition` object with empty dictioinaries.
-
-#### (2) Compute Transition Probability
-
-	t.compute(training file name)
-Similar to that in emission.py, this procedure computes the values in the four dictionaries.
-
-#### (3) Transition
-
-	t.transit(front, current)
-This procedure returns a single floating number denoting the transition probability of transitioning from ***front*** to ***current***, corresponding to the front tag and current tag.
-
-#### (4) `startwith`
-	
-	t.startwith(tag)
-This method returns a single floating number, which is the value of <a href="https://www.codecogs.com/eqnedit.php?latex=T(START,tag)" target="_blank"><img src="https://latex.codecogs.com/gif.latex?T(START,tag)" title="T(START,tag)" /></a>, denoting the probability of the sentence starts with ***tag***.
-
-#### (5) `stopwith`
-	t.stopwith(tag)
-Similar to ***startwith()***, this method returns the probability that one sentence stops with ***tag***.
-
-### 3. `viterbi.py`
-This part is the core of the viterbi algorithm, it has two classes and two methods.
-
-#### Find Top-1 tag sequence
-~~~~python
-viterbi_best(e, t, inputfile, outputfile, p=True)
-~~~~
-
-`e`: computed emission object
-
-`t`: computed transition object
-
-`inputfile`: the path of input file
-
-`outputfile`: path of output file
-
-`p`: whether do preprocessing before computing probabilities
-
-This function applies dynamic programming to find the best tag sequence for given observation of word sequence. As the algorithm to compute top N tag sequence is more general, the procedure would be specified in next part.
-
-#### Find Top-N  Tag Sequence
-
-~~~~python
-viterbi_Nbest(e,t,input,output,best=10,p=True)
-~~~~
-
-`e`: computed emission object
-
-`t`: computed transition object
-
-`inputfile`: the path of input file
-
-`outputfile`: path of output file
-
-`p`: whether do preprocessing before computing probabilities
-
-This function is implemented with the following 2 classes:
-
-* `class worditem`:
-
-		word: the previous tag of current position
-		score: score of this previous tag at this position
-		path: which path of the previous tag this score is from
-
-* `class NBest`:
-  
-  This class maintains a heap of worditem(s) to rank previous tags with their respective scores.
-  		
-  		NBest.NBest(best):
-  		best value specifying the number of best paths we want
-  
-		NBest.add(word, prob, path)
-		adding a new worditem object with this 3 values
-		into the heap
-		
-		NBest.best()
-		remove all paths after ranking behind the specified best
-		value
-
-
-#### Algorithm Specification
-
-In viterbi algorithm, we have following dynamic transition function:
-
-<a href="https://www.codecogs.com/eqnedit.php?latex=Pi&space;[&space;i&space;,&space;tag&space;]&space;=&space;Max(Pi&space;[&space;i-1&space;,&space;tag’&space;]&space;*&space;Transition[&space;tag’&space;,&space;tag]&space;*&space;Emission[&space;tag&space;,&space;word]&space;)" target="_blank"><img src="https://latex.codecogs.com/gif.latex?Pi&space;[&space;i&space;,&space;tag&space;]&space;=&space;Max(Pi&space;[&space;i-1&space;,&space;tag’&space;]&space;*&space;Transition[&space;tag’&space;,&space;tag]&space;*&space;Emission[&space;tag&space;,&space;word]&space;)" title="Pi [ i , tag ] = Max(Pi [ i-1 , tag’ ] * Transition[ tag’ , tag] * Emission[ tag , word] )" /></a>
-
-Base Case:
-
-<a href="https://www.codecogs.com/eqnedit.php?latex=Pi&space;[&space;0&space;,&space;START&space;]&space;=&space;1" target="_blank"><img src="https://latex.codecogs.com/gif.latex?Pi&space;[&space;0&space;,&space;START&space;]&space;=&space;1" title="Pi [ 0 , START ] = 1" /></a>
-
-<a href="https://www.codecogs.com/eqnedit.php?latex=Pi&space;[&space;0&space;,&space;tag&space;]&space;=&space;0" target="_blank"><img src="https://latex.codecogs.com/gif.latex?Pi&space;[&space;0&space;,&space;tag&space;]&space;=&space;0" title="Pi [ 0 , tag ] = 0" /></a> ( for tag that is not START )
-
-In order to get the top-N sequences, we must save N-best POS tag sequences at each potential tag for each word.
-
-The result is saved in a queue in the following format.
-
-<a href="https://www.codecogs.com/eqnedit.php?latex=F[&space;i&space;,&space;tag&space;]&space;=&space;[&space;(&space;Pi_{1}&space;,&space;previous\_tag_1&space;)...&space;(&space;Pi_{10}&space;,&space;previous\_tag_{10}&space;)&space;]" target="_blank"><img src="https://latex.codecogs.com/gif.latex?F[&space;i&space;,&space;tag&space;]&space;=&space;[&space;(&space;Pi_{1}&space;,&space;previous\_tag_1&space;)...&space;(&space;Pi_{10}&space;,&space;previous\_tag_{10}&space;)&space;]" title="F[ i , tag ] = [ ( Pi_{1} , previous\_tag_1 )... ( Pi_{10} , previous\_tag_{10} ) ]" /></a>
-
-(If the number of possible choices is above 10. If not, just save all the possible choices in the heap)
-
-The generating procedure is:
-
-* Enumerate all positions in a sequence. -> `O(N)`
-* Enumerate all possible tags for the word at this position. -> `O(T)`
-* Enumerate all possible tags for previous position. -> `O(T)`
-* Enumerate all n scores at the given previous tag and compute the score of current position with the dynamic transition function mentioned above, and push the object having related information into the heap. -> `O(n)`
-* For one certain current tag, if all previous tags are already enumerated, remove all previous tag paths ranking behind n.
-
-The decoding procedure is:
-
-* As we know the N best tags at a position and from which previous path of the previous tag it comes from, we can decode the sentence from the last to the beginning. -> `O(N)`
-
-All in all, the time complexity of the best N algorithm is `O(nNT^2)`
-
-### 4. `toolbox.py`
-This module provides the tools that facilitates other modules, including preprocessor and evaluation methods:
-#### Preprocessor
-~~~~python
-toolbox.preprocess("input file", "output file")
-~~~~
-This method preprocesses the input file and write the results into output file. It achieves this by using following two methods.
-~~~~python
-# sentence processing
-pword, ptag = toolbox.processSentence(sentence)
-~~~~
-This method processes one sentence into one processed word and one processed tag. Temporarily, no modifications are done to tag except extracting it from the sentence.
-~~~~python
-# word processing
-pword = toolbox.processWord(word)
-~~~~
-This method processes a word with the following rules:
-
-  *  When one word contains only punctuations, for example `:)` or `:(`, it remains the same.
-  *  The words begins with `@` are turned into USR to be currectly labeled as USR.
-  *  Digits are turned into `digit`.
-  *  Words starting with `#` are turned into `HT`.
-  *  For other words with not only punctuations, like `hello!`, remove the punctuations and modify all alphabets into lower case. This generalization procedure could slightly improve the results.
-  *  **[Deprecated]** Exception is URL. Initially URL are retained, but in terms of the error rate there were not improvements, so this rule is deprecated.
-
-~~~~python
-hasURL(word) #judge whether one sentence has URL
-~~~~        
-
-
-## Performance
-#### POS with preprocessor
-1. emission.py MLE, with preprocessor
-
-		python run.py -t ../data/POS/ptrain 
-		-i ../data/POS/dev.in 
-		-o ../data/POS/dev.p4.out 
-		--algorithm 0
-	
-`Error rate: 0.305203938115`
-
-2. viterbi, best 1, with preprocessor
-		python run.py -t ../data/POS/ptrain 
-		-i ../data/POS/dev.in 
-		-o ../data/POS/dev.p4.out 
-		--algorithm 1
-Error rate: 0.325246132208
-
-3. viterbi, best 10, with preprocessor
-~~~~	
-python run.py -t ../data/POS/ptrain 
-	-i ../data/POS/dev.in 
-	-o ../data/POS/dev.p4.out 
-	--algorithm 2 
-	-b 10
-~~~~
-Error rate: 
-
-		0.310829817159
-		0.313291139241
-		0.322784810127
-		0.318213783404
-		0.323839662447
-		0.32876230661
-		0.331575246132
-		0.32876230661
-		0.32841068917
-		0.329465541491
-
-#### NPC with preprocessor
-1. emission.py MLE, with preprocessor
-
-		python run.py -t ../data/NPC/ptrain 
-		-i ../data/NPC/dev.in 
-		-o ../data/NPC/dev.p2.out 
-		--algorithm 0
-		
-Error rate:0.296279505546
-
-2. viterbi, best 1, with preprocessor
-
-		python run.py -t ../data/NPC/ptrain 
-		-i ../data/NPC/dev.in 
-		-o ../data/NPC/dev.p3.out 
-		--algorithm 1
-
-Error rate: 0.214767129084
-3. viterbi, best 10 with preprocessor
-		
-		python run.py -t ../data/NPC/ptrain 
-		-i ../data/NPC/dev.in 
-		-o ../data/NPC/dev.p4.out 
-		--algorithm 2 
-		-b 10
-Error rate: 
-
-		0.214767129084
-		0.235711911022
-		0.240638317164
-		0.254813068577
-		0.256505576208
-		0.264726327561
-		0.268232236226
-		0.275425393659
-		0.266962855502
-		0.257142857143
-
+$$ e(word|tag) = \frac{count(word,tag)}{count(tag)+1}$$
+As we can hardly enumerate all possible *"word"*s in the given text file, for a word that has never appeared in the corpus, we provide a special case formula to estimate it's emission probability:
+$$e(new|tag) = \frac{1}{count(tag)+1}$$
+
+An experiment, when we change the estimator for new words, the result is better than before:
+$$e(new|tag) = \frac{count(tag)}{count(tag)+1}$$
+**My thoughts, the score actually doesn't matter, but we should tend to give the new word a more probable tag, this trick applied to part 5**
+
+without preprocessor
+POS,MLE: 0.340717299578
+POS,DP: 0.377285513361
+runtime: 146.777487
+1 :POS, DP2: 0.352320675105
+2 :POS, DP2: 0.353375527426
+3 :POS, DP2: 0.360407876231
+4 :POS, DP2: 0.357946554149
+5 :POS, DP2: 0.356891701828
+6 :POS, DP2: 0.35970464135
+7 :POS, DP2: 0.365682137834
+8 :POS, DP2: 0.362869198312
+9 :POS, DP2: 0.369549929677
+10 :POS, DP2: 0.364978902954
+with preprocessor
+POS, MLE: 0.322784810127
+POS, DP: 0.323136427567
+runtime: 265.356141
+1 :POS, DP2: 0.307665260197
+2 :POS, DP2: 0.319971870605
+3 :POS, DP2: 0.3129395218
+4 :POS, DP2: 0.313291139241
+5 :POS, DP2: 0.317862165963
+6 :POS, DP2: 0.323136427567
+7 :POS, DP2: 0.321729957806
+8 :POS, DP2: 0.32770745429
+9 :POS, DP2: 0.321026722925
+10 :POS, DP2: 0.322081575246
+without preprocessor
+NPC,MLE: 0.242995738508
+NPC,DP: 0.191072022244
+runtime: 12.2817
+1 :NPC, DP2: 0.191072022244
+2 :NPC, DP2: 0.204732976698
+3 :NPC, DP2: 0.21727566718
+4 :NPC, DP2: 0.221930063167
+5 :NPC, DP2: 0.23613503793
+6 :NPC, DP2: 0.235500347569
+7 :NPC, DP2: 0.240396530359
+8 :NPC, DP2: 0.242935291806
+9 :NPC, DP2: 0.244053555777
+10 :NPC, DP2: 0.285714285714
+with preprocessor
+NPC, MLE: 0.269259830145
+NPC, DP: 0.200652824372
+runtime: 18.826656
+1 :NPC, DP2: 0.200652824372
+2 :NPC, DP2: 0.218091697646
+3 :NPC, DP2: 0.226796022607
+4 :NPC, DP2: 0.236195484631
+5 :NPC, DP2: 0.245776286759
+6 :NPC, DP2: 0.250551576148
+7 :NPC, DP2: 0.255417535588
+8 :NPC, DP2: 0.258167860489
+9 :NPC, DP2: 0.257200713271
+10 :NPC, DP2: 0.2
+
+Internally, this class maintains two Python dictionaries, named *matrix* and *labels*, which has:
+
+	matrix[word][tags] = count(word, tag)
+	labels[tag] = count(tag)
+####import the module and initialization
+	# import the module
+	import emission
+	# initialization
+	e = emission.emission()
+This step provides an "empty" emission object.
+####compute the parameters with a given corpus
+	e.compute("file name")
+After this step the *matrix* and *labels* in emission classes is computed. 
+####compute emission probability
+	e.emit(word, tag, p=True)
+	# attention: tag must appear in the given training corpus
+	# or it would raise a runtime error
+*word* is the word we want to emit, *tag* is the tentative tag to emit, and *p* stands for "process", when *p* is set true, the object would process *word* before computing the emission probability.
+####guess the most probable tag
+	e.mostprob()
+It occurs in Hidden Markov Model that at some points in a sentence, all possible tags score 0. When it occurs such scenario one enhacement is tag this position as the most probable label among all possible labels.
+
+Another try: only change the word guess at 0 score point but don't change the original path, the result proves to be worse than before 
+without preprocessor
+runtime: 160.738827
+1 :POS, DP2: 0.387834036568
+2 :POS, DP2: 0.393108298172
+3 :POS, DP2: 0.396272855134
+4 :POS, DP2: 0.393459915612
+5 :POS, DP2: 0.399789029536
+6 :POS, DP2: 0.396976090014
+7 :POS, DP2: 0.403305203938
+8 :POS, DP2: 0.397679324895
+9 :POS, DP2: 0.403656821378
+10 :POS, DP2: 0.401195499297
+with preprocessor
+runtime: 274.522126
+1 :POS, DP2: 0.340014064698
+2 :POS, DP2: 0.347046413502
+3 :POS, DP2: 0.352672292546
+4 :POS, DP2: 0.352320675105
+5 :POS, DP2: 0.353375527426
+6 :POS, DP2: 0.356188466948
+7 :POS, DP2: 0.356891701828
+8 :POS, DP2: 0.353727144866
+9 :POS, DP2: 0.356188466948
+10 :POS, DP2: 0.360759493671
+without preprocessor
+runtime: 13.108931
+1 :NPC, DP2: 0.224136367758
+2 :NPC, DP2: 0.24311663191
+3 :NPC, DP2: 0.244265119231
+4 :NPC, DP2: 0.255659322392
+5 :NPC, DP2: 0.257291383323
+6 :NPC, DP2: 0.264333424003
+7 :NPC, DP2: 0.262610693021
+8 :NPC, DP2: 0.269682957053
+9 :NPC, DP2: 0.26738598241
+10 :NPC, DP2: 0.271428571429
+with preprocessor
+runtime: 20.377208
+1 :NPC, DP2: 0.216036509807
+2 :NPC, DP2: 0.236739504942
+3 :NPC, DP2: 0.240819657267
+4 :NPC, DP2: 0.255719769094
+5 :NPC, DP2: 0.256566022909
+6 :NPC, DP2: 0.264877444313
+7 :NPC, DP2: 0.266358388491
+8 :NPC, DP2: 0.274065342884
+9 :NPC, DP2: 0.267476652462
+10 :NPC, DP2: 0.285714285714
+
+####MLE predictor:
+With the emission probability, one method to tag a word in one sentence is to choose the tag which has the greatest emission probability to the word.
+
+	e.predict("input filename","output filename", p=True)
+Then the object labels the input file with emission probability and writes the labeled text into output file. 
+
+When *p* is set True, the word to be tagged would be processed with toolbox before computing emission probability.
+
+##transition.py
+This module provides a class similar to emission.py, which also maintains two internal dictionaries ***matrix*** and ***states*** to compute the transition probability with the MLE in Hidden Markov Model, where:
+$$T(y_{i-1}->y_i) = \frac{count(y_{i-1},y{i})}{count(y_{i-1})}$$
+In particular, i=1 or i=n respectively denotes that this word is the first or last word of the sentence, under such case the transition probability is:
+$$T(y_0->y_1)= \frac{count(START,y_1)}{count(START)}$$
+$$T(y_n->y_{n+1}) = \frac{count(y_n,STOP)}{count(STOP)}$$
+
+The ***matrix*** dictionary maintains the v
